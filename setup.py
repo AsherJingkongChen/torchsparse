@@ -12,12 +12,11 @@ from torch.utils.cpp_extension import (
     CppExtension,
     CUDAExtension,
 )
+from torchsparse.version import __version__
 
-# from torchsparse import __version__
+print("torchsparse version:", __version__)
 
-version_file = open("./torchsparse/version.py")
-version = version_file.read().split("'")[1]
-print("torchsparse version:", version)
+build_ext = BuildExtension.with_options(no_python_abi_suffix=True, use_ninja=True)
 
 if (torch.cuda.is_available() and CUDA_HOME is not None) or (
     os.getenv("FORCE_CUDA", "0") == "1"
@@ -47,13 +46,13 @@ if not sparseconfig_path.exists():
     run(["make", "src/sparsehash/internal/sparseconfig.h"], cwd=sparsehash_dir, check=True)
 
 extra_compile_args = {
-    "cxx": ["-g", "-O3", "-fopenmp", "-lgomp", f"-I{sparsehash_dir_inc}"],
-    "nvcc": ["-O3", "-std=c++17"],
+    "cxx": ["-O3", "-fopenmp", "-lgomp", f"-I{sparsehash_dir_inc}"],
+    "nvcc": ["-O3"],
 }
 
 setup(
     name="torchsparse",
-    version=version,
+    version=__version__,
     packages=find_packages(),
     ext_modules=[
         extension_type(
@@ -61,20 +60,18 @@ setup(
         )
     ],
     url="https://github.com/mit-han-lab/torchsparse",
+    include_package_data=True,
     install_requires=[
+        "ninja",
         "numpy",
         "backports.cached_property",
         "tqdm",
         "typing-extensions",
         "wheel",
-        "rootpath",
         "torch",
         "torchvision"
     ],
-    dependency_links=[
-        'https://download.pytorch.org/whl/cu118'
-    ],
-    cmdclass={"build_ext": BuildExtension},
+    cmdclass={"build_ext": build_ext},
     zip_safe=False,
 )
 
