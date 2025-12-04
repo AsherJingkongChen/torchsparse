@@ -13,7 +13,7 @@ from torch.utils.cpp_extension import (
     CUDAExtension,
 )
 
-# from torchsparse import __version__
+from torchsparse.version import __version__
 
 MAX_JOBS = os.getenv("MAX_JOBS")
 need_to_unset_max_jobs = False
@@ -22,9 +22,7 @@ if not MAX_JOBS:
     os.environ["MAX_JOBS"] = "10"
     print(f"Setting MAX_JOBS: {os.environ['MAX_JOBS']}")
 
-version_file = open("./torchsparse/version.py")
-version = version_file.read().split("'")[1]
-print("torchsparse version:", version)
+print("torchsparse version:", __version__)
 
 if (torch.cuda.is_available() and CUDA_HOME is not None) or (
     os.getenv("FORCE_CUDA", "0") == "1"
@@ -60,7 +58,7 @@ extra_compile_args = {
 
 setup(
     name="torchsparse",
-    version=version,
+    version=__version__,
     packages=find_packages(),
     ext_modules=[
         extension_type(
