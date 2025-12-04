@@ -1,6 +1,7 @@
 import glob
 import os
 from pathlib import Path
+from subprocess import run
 
 import torch
 import torch.cuda
@@ -19,7 +20,7 @@ need_to_unset_max_jobs = False
 if not MAX_JOBS:
     need_to_unset_max_jobs = True
     os.environ["MAX_JOBS"] = "10"
-    print(f"Setting MAX_JOBS to {os.environ['MAX_JOBS']}")
+    print(f"Setting MAX_JOBS: {os.environ['MAX_JOBS']}")
 
 version_file = open("./torchsparse/version.py")
 version = version_file.read().split("'")[1]
@@ -43,9 +44,17 @@ for fpath in glob.glob(os.path.join("torchsparse", "backend", "**", "*")):
 
 extension_type = CUDAExtension if device == "cuda" else CppExtension
 current_dir = Path(__file__).parent.resolve()
-sparsehash_include = current_dir / "torchsparse" / "backend" / "third_party" / "sparsehash" / "src"
+sparsehash_dir = current_dir / "torchsparse" / "backend" / "third_party" / "sparsehash"
+sparsehash_dir_inc = sparsehash_dir / "src"
+sparseconfig_path = sparsehash_dir_inc / "sparsehash" / "internal" / "sparseconfig.h"
+
+if not sparseconfig_path.exists():
+    print("Generating sparseconfig.h ...")
+    run(["./configure"], cwd=sparsehash_dir, check=True)
+    run(["make", "src/sparsehash/internal/sparseconfig.h"], cwd=sparsehash_dir, check=True)
+
 extra_compile_args = {
-    "cxx": ["-O3", "-fopenmp", "-lgomp", f"-I{sparsehash_include}"],
+    "cxx": ["-O3", "-fopenmp", "-lgomp", f"-I{sparsehash_dir_inc}"],
     "nvcc": ["-O3"],
 }
 
@@ -79,3 +88,6 @@ setup(
 if need_to_unset_max_jobs:
     print("Unsetting MAX_JOBS")
     os.environ.pop("MAX_JOBS")
+
+# Cleanup sparsehash configure/make artifacts
+run(["git", "clean", "-fd"], cwd=sparsehash_dir, check=False)
