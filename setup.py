@@ -12,17 +12,20 @@ from torch.utils.cpp_extension import (
     CppExtension,
     CUDAExtension,
 )
-
 from torchsparse.version import __version__
+
+print("torchsparse version:", __version__)
 
 MAX_JOBS = os.getenv("MAX_JOBS")
 need_to_unset_max_jobs = False
 if not MAX_JOBS:
     need_to_unset_max_jobs = True
-    os.environ["MAX_JOBS"] = "10"
-    print(f"Setting MAX_JOBS: {os.environ['MAX_JOBS']}")
+    max_jobs_default = "10"
+    os.environ["MAX_JOBS"] = max_jobs_default
+    print(f"Setting MAX_JOBS: {max_jobs_default}")
 
-print("torchsparse version:", __version__)
+
+build_ext = BuildExtension.with_options(no_python_abi_suffix=True, use_ninja=True)
 
 if (torch.cuda.is_available() and CUDA_HOME is not None) or (
     os.getenv("FORCE_CUDA", "0") == "1"
@@ -66,7 +69,9 @@ setup(
         )
     ],
     url="https://github.com/mit-han-lab/torchsparse",
+    include_package_data=True,
     install_requires=[
+        "ninja",
         "numpy",
         "backports.cached_property",
         "tqdm",
@@ -76,10 +81,7 @@ setup(
         "torch",
         "torchvision"
     ],
-    dependency_links=[
-        'https://download.pytorch.org/whl/cu118'
-    ],
-    cmdclass={"build_ext": BuildExtension},
+    cmdclass={"build_ext": build_ext},
     zip_safe=False,
 )
 
