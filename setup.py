@@ -1,5 +1,7 @@
 import glob
 import os
+from pathlib import Path
+from subprocess import run
 
 import torch
 import torch.cuda
@@ -34,8 +36,18 @@ for fpath in glob.glob(os.path.join("torchsparse", "backend", "**", "*")):
         sources.append(fpath)
 
 extension_type = CUDAExtension if device == "cuda" else CppExtension
+current_dir = Path(__file__).parent.resolve()
+sparsehash_dir = current_dir / "torchsparse" / "backend" / "third_party" / "sparsehash"
+sparsehash_dir_inc = sparsehash_dir / "src"
+sparseconfig_path = sparsehash_dir_inc / "sparsehash" / "internal" / "sparseconfig.h"
+
+if not sparseconfig_path.exists():
+    print("Generating sparseconfig.h ...")
+    run(["./configure"], cwd=sparsehash_dir, check=True)
+    run(["make", "src/sparsehash/internal/sparseconfig.h"], cwd=sparsehash_dir, check=True)
+
 extra_compile_args = {
-    "cxx": ["-g", "-O3", "-fopenmp", "-lgomp"],
+    "cxx": ["-g", "-O3", "-fopenmp", "-lgomp", f"-I{sparsehash_dir_inc}"],
     "nvcc": ["-O3", "-std=c++17"],
 }
 
@@ -65,3 +77,13 @@ setup(
     cmdclass={"build_ext": BuildExtension},
     zip_safe=False,
 )
+
+for f in [
+    "Makefile",
+    "config.log",
+    "config.status",
+    "src/config.h",
+    "src/sparsehash/internal/sparseconfig.h",
+    "src/stamp-h1",
+]:
+    (sparsehash_dir / f).unlink(missing_ok=True)
