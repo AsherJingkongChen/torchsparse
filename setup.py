@@ -1,5 +1,6 @@
 import glob
 import os
+from pathlib import Path
 
 import torch
 import torch.cuda
@@ -41,9 +42,11 @@ for fpath in glob.glob(os.path.join("torchsparse", "backend", "**", "*")):
         sources.append(fpath)
 
 extension_type = CUDAExtension if device == "cuda" else CppExtension
+current_dir = Path(__file__).parent.resolve()
+sparsehash_include = current_dir / "torchsparse" / "backend" / "third_party" / "sparsehash" / "src"
 extra_compile_args = {
-    "cxx": ["-g", "-O3", "-fopenmp", "-lgomp", "-I./torchsparse/backend/third_party/sparsehash/src"],
-    "nvcc": ["-O3", "-std=c++17"],
+    "cxx": ["-O3", "-fopenmp", "-lgomp", f"-I{sparsehash_include}"],
+    "nvcc": ["-O3"],
 }
 
 setup(
