@@ -13,6 +13,13 @@ from torch.utils.cpp_extension import (
 
 # from torchsparse import __version__
 
+MAX_JOBS = os.getenv("MAX_JOBS")
+need_to_unset_max_jobs = False
+if not MAX_JOBS:
+    need_to_unset_max_jobs = True
+    os.environ["MAX_JOBS"] = "10"
+    print(f"Setting MAX_JOBS to {os.environ['MAX_JOBS']}")
+
 version_file = open("./torchsparse/version.py")
 version = version_file.read().split("'")[1]
 print("torchsparse version:", version)
@@ -65,3 +72,7 @@ setup(
     cmdclass={"build_ext": BuildExtension},
     zip_safe=False,
 )
+
+if need_to_unset_max_jobs:
+    print("Unsetting MAX_JOBS")
+    os.environ.pop("MAX_JOBS")
