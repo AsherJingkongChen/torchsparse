@@ -16,15 +16,6 @@ from torchsparse.version import __version__
 
 print("torchsparse version:", __version__)
 
-MAX_JOBS = os.getenv("MAX_JOBS")
-need_to_unset_max_jobs = False
-if not MAX_JOBS:
-    need_to_unset_max_jobs = True
-    max_jobs_default = "10"
-    os.environ["MAX_JOBS"] = max_jobs_default
-    print(f"Setting MAX_JOBS: {max_jobs_default}")
-
-
 build_ext = BuildExtension.with_options(no_python_abi_suffix=True, use_ninja=True)
 
 if (torch.cuda.is_available() and CUDA_HOME is not None) or (
@@ -84,10 +75,6 @@ setup(
     cmdclass={"build_ext": build_ext},
     zip_safe=False,
 )
-
-if need_to_unset_max_jobs:
-    print("Unsetting MAX_JOBS")
-    os.environ.pop("MAX_JOBS")
 
 # Cleanup sparsehash configure/make artifacts
 run(["git", "clean", "-fd"], cwd=sparsehash_dir, check=False)
