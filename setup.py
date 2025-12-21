@@ -68,7 +68,6 @@ setup(
         "tqdm",
         "typing-extensions",
         "wheel",
-        "rootpath",
         "torch",
         "torchvision"
     ],
