@@ -12,7 +12,9 @@ from torch.utils.cpp_extension import (
     CppExtension,
     CUDAExtension,
 )
-from torchsparse.version import __version__
+
+with open('torchsparse/version.py') as f:
+    __version__ = f.read().split("'")[1]
 
 print("torchsparse version:", __version__)
 
