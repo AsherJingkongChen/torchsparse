@@ -4,7 +4,12 @@ from torch import nn
 from torchsparse import SparseTensor
 from torchsparse.nn.utils import fapply
 
-__all__ = ["BatchNorm", "GroupNorm", "InstanceNorm"]
+__all__ = ["BatchNorm", "GroupNorm", "InstanceNorm", "LayerNorm"]
+
+
+class LayerNorm(nn.LayerNorm):
+    def forward(self, input: SparseTensor) -> SparseTensor:
+        return fapply(input, super().forward)
 
 
 class InstanceNorm(nn.InstanceNorm1d):

@@ -3,7 +3,7 @@ from torch import nn
 from torchsparse import SparseTensor
 from torchsparse.nn.utils import fapply
 
-__all__ = ["ReLU", "LeakyReLU", "SiLU"]
+__all__ = ["ReLU", "LeakyReLU", "SiLU", "GELU"]
 
 
 class ReLU(nn.ReLU):
@@ -17,5 +17,10 @@ class LeakyReLU(nn.LeakyReLU):
 
 
 class SiLU(nn.SiLU):
+    def forward(self, input: SparseTensor) -> SparseTensor:
+        return fapply(input, super().forward)
+
+
+class GELU(nn.GELU):
     def forward(self, input: SparseTensor) -> SparseTensor:
         return fapply(input, super().forward)
