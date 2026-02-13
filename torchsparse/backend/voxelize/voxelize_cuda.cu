@@ -89,7 +89,7 @@ at::Tensor voxelize_forward_cuda(const at::Tensor inputs, const at::Tensor idx,
 
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(
       inputs.scalar_type(), "voxelize_forward_cuda", ([&]
-                                               { voxelize_forward_kernel<scalar_t><<<N, c>>>(
+                                               { voxelize_forward_kernel<scalar_t><<<(N * c + 255) / 256, 256>>>(
                                                      N, c, N1, inputs.data_ptr<scalar_t>(), idx.data_ptr<int>(),
                                                      counts.data_ptr<int>(), out.data_ptr<scalar_t>()); }));
 
@@ -109,7 +109,7 @@ at::Tensor voxelize_backward_cuda(const at::Tensor top_grad,
 
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(
       top_grad.scalar_type(), "voxelize_backward_cuda", ([&]
-                                                  { voxelize_backward_kernel<scalar_t><<<N, c>>>(
+                                                  { voxelize_backward_kernel<scalar_t><<<(N * c + 255) / 256, 256>>>(
                                                         N, c, N1, top_grad.data_ptr<scalar_t>(), idx.data_ptr<int>(),
                                                         counts.data_ptr<int>(), bottom_grad.data_ptr<scalar_t>()); }));
 
