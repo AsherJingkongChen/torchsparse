@@ -11,7 +11,7 @@ __all__ = ["cat", "generative_add"]
 
 def cat(inputs: List[SparseTensor]) -> SparseTensor:
     feats = torch.cat([input.feats for input in inputs], dim=1)
-    output = SparseTensor(coords=inputs[0].coords, feats=feats, stride=inputs[0].stride)
+    output = SparseTensor(coords=inputs[0].coords, feats=feats, stride=inputs[0].stride, spatial_range=inputs[0].spatial_range)
     output._caches = inputs[0]._caches
     return output
 
