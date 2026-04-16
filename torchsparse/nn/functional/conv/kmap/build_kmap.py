@@ -62,7 +62,8 @@ def build_kernel_map(
     stride = make_ntuple(stride, ndim=3)
     kernel_size = make_ntuple(kernel_size, ndim=3)
     padding = make_ntuple(padding, ndim=3)
-    if spatial_range is not None:
+    subm = not (any(s > 1 for s in stride))
+    if spatial_range is not None and not subm:
         new_spatial_range = [0, 0, 0]
         for i in range(len(new_spatial_range)):
             new_spatial_range[i] = (
@@ -71,8 +72,7 @@ def build_kernel_map(
         new_spatial_range = spatial_range[:1] + tuple(new_spatial_range)
         kmap["spatial_range"] = new_spatial_range
     else:
-        new_spatial_range = None
-    subm = not (any(s > 1 for s in stride))
+        new_spatial_range = spatial_range
     stride = make_tensor(stride, dtype=torch.int, device=_coords.device)
     padding = make_tensor(padding, dtype=torch.int, device=_coords.device)
     kernel_size = make_tensor(kernel_size, dtype=torch.int, device=_coords.device)
