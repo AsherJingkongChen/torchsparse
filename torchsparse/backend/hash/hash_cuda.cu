@@ -3,6 +3,7 @@
 #include <torch/torch.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <cmath>
 #include <vector>
 // hashing
@@ -58,10 +59,12 @@ void kernel_hash_wrapper(int N, int K, const int *data,
                          const int *kernel_offset, int64_t *out) {
   kernel_hash_kernel<<<ceil((double)(N * K) / 512), 512, K * 3 * sizeof(int)>>>(
       N, K, data, kernel_offset, out);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 void hash_wrapper(int N, const int *data, int64_t *out) {
   hash_kernel<<<ceil((double)N / 512), 512>>>(N, data, out);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 at::Tensor hash_cuda(const at::Tensor idx) {

@@ -2,6 +2,7 @@
 #include <torch/extension.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include "exclusive_scan_cuda.h"
 
 // to derive quantified address of activated features
@@ -40,6 +41,7 @@ at::Tensor exclusive_scan_quantified_wrapper(
   exclusive_scan_for_kernel_quantified<<<1, k_vol, 0, 0>>>(
         k_vol + 1, knnz_ptr, 128, kpos_ptr, qkpos_ptr
   );
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
   // We must have a tensor as return val for Pybind.
   at::Tensor status = at::zeros({1});
   return status;

@@ -3,6 +3,7 @@
 #include <torch/torch.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <cmath>
 #include <vector>
 
@@ -18,6 +19,7 @@ __global__ void count_kernel(int N, const int *__restrict__ data,
 
 void count_wrapper(int N, const int *data, int *out) {
   count_kernel<<<ceil((double)N / 512), 512>>>(N, data, out);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 // make sure indices is int type

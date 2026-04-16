@@ -1,6 +1,7 @@
 #include <torch/torch.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -54,6 +55,7 @@ void convert_transposed_out_in_map(const at::Tensor out_in_map,
   c10::cuda::CUDAGuard guard(out_in_map.device());
   convert_out_in_map_kernel<<<(out_in_map.size(0) * out_in_map.size(1) + 255) / 256, 256>>>(
     out_in_map.data_ptr<int>(), out_in_map_t.data_ptr<int>(), out_in_map.size(0), out_in_map.size(1));
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 
@@ -65,5 +67,6 @@ at::Tensor derive_bitmask_from_out_in_map(const at::Tensor out_in_map, const int
       {split_mask_num, out_in_map.size(0)}, -1, at::device(out_in_map.device()).dtype(at::ScalarType::Int));
   derive_bit_mask_from_out_in_map_kernel<<<(split_mask_num * out_in_map.size(0) + 255) / 256, 256>>>(
     out_in_map.data_ptr<int>(), bitmask.data_ptr<int>(), valid_n, out_in_map.size(0), out_in_map.size(1), split_mask_num);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
   return bitmask;
 }

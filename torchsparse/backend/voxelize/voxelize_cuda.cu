@@ -3,6 +3,7 @@
 #include <torch/torch.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <THC/THCAtomics.cuh>
 #include <cmath>
 
@@ -91,7 +92,8 @@ at::Tensor voxelize_forward_cuda(const at::Tensor inputs, const at::Tensor idx,
       inputs.scalar_type(), "voxelize_forward_cuda", ([&]
                                                { voxelize_forward_kernel<scalar_t><<<(N * c + 255) / 256, 256>>>(
                                                      N, c, N1, inputs.data_ptr<scalar_t>(), idx.data_ptr<int>(),
-                                                     counts.data_ptr<int>(), out.data_ptr<scalar_t>()); }));
+                                                     counts.data_ptr<int>(), out.data_ptr<scalar_t>());
+                                                 C10_CUDA_KERNEL_LAUNCH_CHECK(); }));
 
   return out;
 }
@@ -111,7 +113,8 @@ at::Tensor voxelize_backward_cuda(const at::Tensor top_grad,
       top_grad.scalar_type(), "voxelize_backward_cuda", ([&]
                                                   { voxelize_backward_kernel<scalar_t><<<(N * c + 255) / 256, 256>>>(
                                                         N, c, N1, top_grad.data_ptr<scalar_t>(), idx.data_ptr<int>(),
-                                                        counts.data_ptr<int>(), bottom_grad.data_ptr<scalar_t>()); }));
+                                                        counts.data_ptr<int>(), bottom_grad.data_ptr<scalar_t>());
+                                                    C10_CUDA_KERNEL_LAUNCH_CHECK(); }));
 
   return bottom_grad;
 }
@@ -127,7 +130,8 @@ void to_dense_forward_cuda(const at::Tensor inputs, const at::Tensor idx,
       inputs.scalar_type(), "to_dense_forward_cuda", ([&]
                                                { to_dense_forward_kernel<scalar_t><<<(N * c + 255) / 256, 256>>>(
                                                      N, c, inputs.data_ptr<scalar_t>(), idx.data_ptr<int>(),
-                                                     range.data_ptr<int>(), outputs.data_ptr<scalar_t>()); }));
+                                                     range.data_ptr<int>(), outputs.data_ptr<scalar_t>());
+                                                 C10_CUDA_KERNEL_LAUNCH_CHECK(); }));
 }
 
 void to_dense_backward_cuda(const at::Tensor top_grad,
@@ -142,5 +146,6 @@ void to_dense_backward_cuda(const at::Tensor top_grad,
       top_grad.scalar_type(), "to_dense_backward_cuda", ([&]
                                                   { to_dense_backward_kernel<scalar_t><<<(N * c + 255) / 256, 256>>>(
                                                         N, c, top_grad.data_ptr<scalar_t>(), idx.data_ptr<int>(),
-                                                        range.data_ptr<int>(), bottom_grad.data_ptr<scalar_t>()); }));
+                                                        range.data_ptr<int>(), bottom_grad.data_ptr<scalar_t>());
+                                                    C10_CUDA_KERNEL_LAUNCH_CHECK(); }));
 }

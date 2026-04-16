@@ -1,5 +1,6 @@
 #pragma once
 
+#include <c10/cuda/CUDAException.h>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -256,11 +257,13 @@ __global__ void lookup_coords_kernel(
 template <typename key_type, typename val_type>
 void GPUHashTable<key_type, val_type>::insert_many(const key_type *keys, const int n){
   insert_kernel<key_type, val_type><<<(n + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(table_keys, table_vals, keys, n, _capacity);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 template <typename key_type, typename val_type>
 void GPUHashTable<key_type, val_type>::insert_many_coords(int *coords, const int n){
   insert_coords_kernel<key_type, val_type><<<(n + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(table_keys, table_vals, coords, n, _capacity);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 template <typename key_type, typename val_type>
@@ -277,6 +280,7 @@ void GPUHashTable<key_type, val_type>::insert_coords(at::Tensor coords){
 template <typename key_type, typename val_type>
 void GPUHashTable<key_type, val_type>::lookup_many(const key_type *keys, val_type *results, const int n){
   lookup_kernel<key_type, val_type><<<(n + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(table_keys, table_vals, keys, results, n, _capacity);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
 template <typename key_type, typename val_type>
@@ -285,13 +289,19 @@ void GPUHashTable<key_type, val_type>::lookup_many_coords(
   const int* kernel_sizes, const int* strides,
   const int n, const int kernel_volume){
   if (kernel_volume % 2)
+  {
     lookup_coords_kernel<key_type, val_type, true><<<(n * kernel_volume + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(
       table_keys, table_vals, coords, results, kernel_sizes, strides,
       n, _capacity, kernel_volume);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+  }
   else
+  {
     lookup_coords_kernel<key_type, val_type, false><<<(n * kernel_volume + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(
       table_keys, table_vals, coords, results, kernel_sizes, strides,
       n, _capacity, kernel_volume);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+  }
 }
 
 template <typename key_type, typename val_type>

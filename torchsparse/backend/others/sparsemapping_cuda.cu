@@ -2,6 +2,7 @@
 #include <torch/torch.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <algorithm>
 #include <cstdio>
 #include <vector>
@@ -285,16 +286,19 @@ std::vector<at::Tensor> build_kernel_map_subm_hashmap_int32(
   if (to_insert)
     subm_hashmap_kmap_stage1<hashtable32::device_view, int32_t><<<(int)ceil((double)n_points / 256), 256>>>(
         table.get_device_view(), n_points, kernel_volume, in_coords, coords_min, coords_max, out_coords);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   // stage2: query
   if (kernel_volume % 2 != 0){
     subm_hashmap_kmap_stage2_odd_kernel<hashtable32::device_view, int32_t><<<(int)ceil((double)n_points * (kernel_volume / 2) / 256), 256>>>(
         table.get_device_view(), n_points, kernel_volume, in_coords, coords_min, coords_max,
         kernel_sizes, out_in_map);  // only support odd kernel shapes
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   else {
     subm_hashmap_kmap_stage2_even_kernel<hashtable32::device_view, int32_t><<<(int)ceil((double)n_points * (kernel_volume) / 256), 256>>>(
         table.get_device_view(), n_points, kernel_volume, in_coords, coords_min, coords_max,
         kernel_sizes, out_in_map);  // only support even kernel shapes
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
 
 
@@ -333,16 +337,19 @@ std::vector<at::Tensor> build_kernel_map_subm_hashmap(
   if (to_insert)
     subm_hashmap_kmap_stage1<hashtable::device_view, int64_t><<<(int)ceil((double)n_points / 256), 256>>>(
         table.get_device_view(), n_points, kernel_volume, in_coords, coords_min, coords_max, out_coords);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   // stage2: query
   if (kernel_volume % 2 != 0){
     subm_hashmap_kmap_stage2_odd_kernel<hashtable::device_view, int64_t><<<(int)ceil((double)n_points * (kernel_volume / 2) / 256), 256>>>(
         table.get_device_view(), n_points, kernel_volume, in_coords, coords_min, coords_max,
         kernel_sizes, out_in_map);  // only support odd kernel shapes
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   else {
     subm_hashmap_kmap_stage2_even_kernel<hashtable::device_view, int64_t><<<(int)ceil((double)n_points * (kernel_volume) / 256), 256>>>(
         table.get_device_view(), n_points, kernel_volume, in_coords, coords_min, coords_max,
         kernel_sizes, out_in_map);  // only support even kernel shapes
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   return {_out_in_map};
 }
@@ -387,6 +394,7 @@ std::vector<at::Tensor> build_kernel_map_downsample_hashmap_int32(
                                               256>>>(
         n_points, kernel_volume, in_coords, kernel_sizes, stride,
         padding, coords_min, coords_max, n_out_points, transformed_out_coords, out_kmap);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   else
   {
@@ -394,6 +402,7 @@ std::vector<at::Tensor> build_kernel_map_downsample_hashmap_int32(
                                               256>>>(
         n_points, kernel_volume, in_coords, kernel_sizes, stride,
         padding, coords_min, coords_max, n_out_points, transformed_out_coords, out_kmap);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   // stage2: get unique coordinates and insert them to the grid.
   int n_out_points_with_duplicate = _n_out_points.item<int>();
@@ -410,22 +419,24 @@ std::vector<at::Tensor> build_kernel_map_downsample_hashmap_int32(
       torch::zeros({n_out_points_scalar, NDim}, options);
   inverse_transform_coords_and_insert_kernel<<<
       (int)ceil((double)n_out_points_scalar / 256), 256>>>(
-      table.get_device_view(), n_out_points_scalar, out_coords, 
+      table.get_device_view(), n_out_points_scalar, out_coords,
       coords_min, coords_max, final_out_coords.data_ptr<int>());
-  
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
+
   //table.insert_vals(_out_coords);
 
-  // stage3: replace the (64b) coordinate ravel hashes with the output idx  
+  // stage3: replace the (64b) coordinate ravel hashes with the output idx
   int divisor = table.get_divisor();
   at::Tensor _out_in_map =
       torch::full({(n_out_points_scalar + divisor - 1) / divisor * divisor, kernel_volume}, -1, options);
   int *out_in_map = _out_in_map.data_ptr<int>();
-  
+
   downsample_hashmap_kmap_stage3<<<
       (int)ceil((double)(n_points * kernel_volume) / 256), 256>>>(
       table.get_device_view(), n_points, n_out_points_scalar, kernel_volume, out_kmap,
       out_in_map);
-  
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
+
   return {_out_in_map, final_out_coords};
 }
 
@@ -470,6 +481,7 @@ std::vector<at::Tensor> build_kernel_map_downsample_hashmap(
                                               256>>>(
         n_points, kernel_volume, in_coords, kernel_sizes, stride,
         padding, coords_min, coords_max, n_out_points, transformed_out_coords, out_kmap);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   else
   {
@@ -477,6 +489,7 @@ std::vector<at::Tensor> build_kernel_map_downsample_hashmap(
                                               256>>>(
         n_points, kernel_volume, in_coords, kernel_sizes, stride,
         padding, coords_min, coords_max, n_out_points, transformed_out_coords, out_kmap);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   // stage2: get unique coordinates and insert them to the grid.
   int n_out_points_with_duplicate = _n_out_points.item<int>();
@@ -494,20 +507,22 @@ std::vector<at::Tensor> build_kernel_map_downsample_hashmap(
       torch::zeros({n_out_points_scalar, NDim}, options);
   inverse_transform_coords_and_insert_kernel<<<
       (int)ceil((double)n_out_points_scalar / 256), 256>>>(
-      table.get_device_view(), n_out_points_scalar, out_coords, 
+      table.get_device_view(), n_out_points_scalar, out_coords,
       coords_min, coords_max, final_out_coords.data_ptr<int>());
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
   //table.insert_vals(_out_coords);
 
-  // stage3: replace the (64b) coordinate ravel hashes with the output idx  
+  // stage3: replace the (64b) coordinate ravel hashes with the output idx
   int divisor = table.get_divisor();
   at::Tensor _out_in_map =
       torch::full({(n_out_points_scalar + divisor - 1) / divisor * divisor, kernel_volume}, -1, options);
   int *out_in_map = _out_in_map.data_ptr<int>();
-  
+
   downsample_hashmap_kmap_stage3<<<
       (int)ceil((double)(n_points * kernel_volume) / 256), 256>>>(
       table.get_device_view(), n_points, n_out_points_scalar, kernel_volume, out_kmap,
       out_in_map);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
   return {_out_in_map, final_out_coords};
 }
 
@@ -550,5 +565,6 @@ std::vector<at::Tensor> build_mask_from_kmap(int n_points, int n_out_points,
   get_masks_from_kmap_kernel<<<ceil((double)max_kmap_size / 256), 256>>>(
       n_points, n_out_points, kernel_volume, kmap, kmap_sizes, cum_kmap_sizes,
       input_mask, output_mask);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
   return {_input_mask, _output_mask};
 }

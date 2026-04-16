@@ -1,5 +1,6 @@
 #include <torch/extension.h>
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include "reorder_map_cuda.h"
 
 #define cta_M 128
@@ -44,6 +45,7 @@ at::Tensor reorder_out_in_map_cuda(
 
     reorder_out_in_map_kernel<<<(M + cta_M - 1) / cta_M * kernel_volume, cta_M>>>(
         out_in_map, reorder_loc, M, kernel_volume, split_mask_len, reorder_out_in_map);
-    
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+
     return _reorder_out_in_map;
 } 

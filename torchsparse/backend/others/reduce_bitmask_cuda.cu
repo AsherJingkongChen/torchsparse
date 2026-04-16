@@ -1,5 +1,6 @@
 #include <torch/extension.h>
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include "reduce_bitmask_cuda.h"
 
 
@@ -81,7 +82,8 @@ torch::Tensor reduce_bitmask_cuda(
 
     reduce_mask_cuda_int32<<<num_blocks, num_threads>>>(
         bitmask_int, output_node_num, reduced_row_num, M_tile, reduced_bitmask_int);
-    
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+
     return _reduced_bitmask_int;
 } 
 

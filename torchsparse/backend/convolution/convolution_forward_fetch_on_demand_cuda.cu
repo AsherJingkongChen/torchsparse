@@ -11,6 +11,7 @@ Please consider citing the following paper when using the code:
 
 #include <ATen/cuda/CUDAContext.h>
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <cublas_v2.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -2041,6 +2042,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     reinterpret_cast<half *>(kernel.data_ptr<at::Half>()),
                     reinterpret_cast<half *>(out_feat.data_ptr<at::Half>()),
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
       }
       else{
         if (allow_tf32){
@@ -2051,6 +2053,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     reinterpret_cast<half *>(kernel.data_ptr<at::Half>()),
                     reinterpret_cast<half *>(out_feat.data_ptr<at::Half>()),
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else{
           fetch_on_demand_gemm_fp16_tc4<32, 4, 8, 16, 16, 16, 4, 2, 2>
@@ -2060,6 +2063,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     reinterpret_cast<half *>(kernel.data_ptr<at::Half>()),
                     reinterpret_cast<half *>(out_feat.data_ptr<at::Half>()),
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
     }
@@ -2071,6 +2075,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     reinterpret_cast<half *>(kernel.data_ptr<at::Half>()),
                     reinterpret_cast<half *>(out_feat.data_ptr<at::Half>()),
                     in_map_ptr, out_map_ptr);   
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
     else{
         fetch_on_demand_gemm_fp16_1<16, 4, 8>
@@ -2080,6 +2085,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     reinterpret_cast<half *>(kernel.data_ptr<at::Half>()),
                     reinterpret_cast<half *>(out_feat.data_ptr<at::Half>()),
                     in_map_ptr, out_map_ptr);  
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
     }  
   }
   else{
@@ -2090,6 +2096,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     kpos_ptr, qkpos_ptr, k_vol, in_channel, out_channel, 
                     in_feat.data_ptr<float>(), kernel.data_ptr<float>(), out_feat.data_ptr<float>(), 
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
       }
       else{
         if (allow_tf32){
@@ -2098,6 +2105,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     kpos_ptr, qkpos_ptr, k_vol, in_channel, out_channel, 
                     in_feat.data_ptr<float>(), kernel.data_ptr<float>(), out_feat.data_ptr<float>(), 
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else{
             fetch_on_demand_gemm_fp32<32, 4, 8>
@@ -2105,6 +2113,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     kpos_ptr, qkpos_ptr, k_vol, in_channel, out_channel, 
                     in_feat.data_ptr<float>(), kernel.data_ptr<float>(), out_feat.data_ptr<float>(), 
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
     }
@@ -2114,6 +2123,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     kpos_ptr, qkpos_ptr, k_vol, in_channel, out_channel, 
                     in_feat.data_ptr<float>(), kernel.data_ptr<float>(), out_feat.data_ptr<float>(), 
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
     else{
         fetch_on_demand_gemm_fp32_1<16, 4, 8>
@@ -2121,6 +2131,7 @@ at::Tensor conv_forward_fetch_on_demand_cuda(
                     kpos_ptr, qkpos_ptr, k_vol, in_channel, out_channel, 
                     in_feat.data_ptr<float>(), kernel.data_ptr<float>(), out_feat.data_ptr<float>(), 
                     in_map_ptr, out_map_ptr);
+                    C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
   }
 
@@ -2201,6 +2212,7 @@ at::Tensor conv_forward_fetch_on_demand_no_fusion_cuda(
                     reinterpret_cast<half *>(out_feat.data_ptr<at::Half>()), 
                     &in_map_ptr[cur_idx], &out_map_ptr[cur_idx]
                 );
+              C10_CUDA_KERNEL_LAUNCH_CHECK();
       }
       else{
         fetch_on_demand_gemm_no_fusion_fp16_1<16, 4, 8>
@@ -2212,6 +2224,7 @@ at::Tensor conv_forward_fetch_on_demand_no_fusion_cuda(
                     reinterpret_cast<half *>(out_feat.data_ptr<at::Half>()), 
                     &in_map_ptr[cur_idx], &out_map_ptr[cur_idx]
                 );
+              C10_CUDA_KERNEL_LAUNCH_CHECK();
       }
     }
     else{
@@ -2225,6 +2238,7 @@ at::Tensor conv_forward_fetch_on_demand_no_fusion_cuda(
                     out_feat.data_ptr<float>(), 
                     &in_map_ptr[cur_idx], &out_map_ptr[cur_idx]
                 );
+              C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else{
           fetch_on_demand_gemm_no_fusion_fp32<32, 4, 8>
@@ -2235,6 +2249,7 @@ at::Tensor conv_forward_fetch_on_demand_no_fusion_cuda(
                     out_feat.data_ptr<float>(), 
                     &in_map_ptr[cur_idx], &out_map_ptr[cur_idx]
                 );
+              C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else{
@@ -2246,6 +2261,7 @@ at::Tensor conv_forward_fetch_on_demand_no_fusion_cuda(
                     out_feat.data_ptr<float>(), 
                     &in_map_ptr[cur_idx], &out_map_ptr[cur_idx]
                 );
+              C10_CUDA_KERNEL_LAUNCH_CHECK();
       }
     }
 

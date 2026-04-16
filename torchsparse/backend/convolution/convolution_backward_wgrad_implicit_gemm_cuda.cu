@@ -1,5 +1,6 @@
 #include <torch/extension.h>
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include "convolution_backward_wgrad_implicit_gemm_cuda.h"
 #include "../utils/memory.cuh"
 #include <cuda_fp16.h>
@@ -1649,6 +1650,7 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
       dim3 threads_per_block(32, 2);
       conv_backward_cuda_setting2_mode0_f16f16f32<<<num_blocks, threads_per_block>>>(
           _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+      C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
     else
     {
@@ -1665,26 +1667,31 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 16, false, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 8 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 16, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 8, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 4, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 2, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else if (num_in_channels % 8 == 0)
@@ -1693,26 +1700,31 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 8 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<16, 2, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else if (num_in_channels % 4 == 0)
@@ -1721,26 +1733,31 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<8, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 8 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<8, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<8, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<8, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<8, 2, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else if (num_in_channels % 2 == 0)
@@ -1749,26 +1766,31 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<4, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 8 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<4, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<4, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<4, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<4, 2, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else
@@ -1777,26 +1799,31 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<2, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 8 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<2, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<2, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<2, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f16f16f32<2, 2, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
     }
@@ -1816,6 +1843,7 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
       dim3 threads_per_block(32, 2);
       conv_backward_cuda_setting2_mode0_tf32tf32f32<<<num_blocks, threads_per_block>>>(
           _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+      C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
     else
     {
@@ -1832,21 +1860,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 16, false, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 16, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 8, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 4, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else if (num_in_channels % 4 == 0)
@@ -1855,21 +1887,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<16, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else if (num_in_channels % 2 == 0)
@@ -1878,21 +1914,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<8, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<8, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<8, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<8, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else
@@ -1901,21 +1941,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<4, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<4, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<4, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_tf32tf32f32<4, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
     }
@@ -1936,6 +1980,7 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
       dim3 threads_per_block(64);
       conv_backward_cuda_setting2_mode0_f32f32f32<<<num_blocks, threads_per_block>>>(
           _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+      C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
     else
     {
@@ -1952,21 +1997,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 16, false, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 16, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 8, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 4, false, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else if (num_in_channels % 4 == 0)
@@ -1975,21 +2024,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<16, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else if (num_in_channels % 2 == 0)
@@ -1998,21 +2051,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<8, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<8, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<8, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<8, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
       else
@@ -2021,21 +2078,25 @@ at::Tensor conv_backward_wgrad_implicit_gemm_cuda(
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<4, 16, true, false><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 4 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<4, 16, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else if (num_out_channels % 2 == 0)
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<4, 8, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
         else
         {
           conv_backward_cuda_setting1_mode0_f32f32f32<4, 4, true, true><<<num_blocks, threads_per_block>>>(
               _kernel.size(0), num_in_channels, num_out_channels, kernel_volume, split_k_iters, in_feats, kernel, out_in_map, out_feats);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }
       }
     }

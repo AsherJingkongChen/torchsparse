@@ -4,6 +4,7 @@
 #include <torch/extension.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <THC/THCAtomics.cuh>
 
 // input features (n, c), indices (N, 8), weight (N, 8) -> output features (N,
@@ -74,6 +75,7 @@ at::Tensor devoxelize_forward_cuda(const at::Tensor feat,
         devoxelize_forward_kernel<scalar_t><<<N, c>>>(
             N, c, indices.data_ptr<int>(), weight.data_ptr<scalar_t>(),
             feat.data_ptr<scalar_t>(), out.data_ptr<scalar_t>());
+        C10_CUDA_KERNEL_LAUNCH_CHECK();
       }));
 
   return out;
@@ -95,6 +97,7 @@ at::Tensor devoxelize_backward_cuda(const at::Tensor top_grad,
         devoxelize_backward_kernel<scalar_t><<<N, c>>>(
             N, n, c, indices.data_ptr<int>(), weight.data_ptr<scalar_t>(),
             top_grad.data_ptr<scalar_t>(), bottom_grad.data_ptr<scalar_t>());
+        C10_CUDA_KERNEL_LAUNCH_CHECK();
       }));
 
   return bottom_grad;

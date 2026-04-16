@@ -2,6 +2,7 @@
 #include <torch/torch.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <algorithm>
 #include <cstdio>
 #include <vector>
@@ -171,6 +172,7 @@ at::Tensor downsample_cuda(at::Tensor _in_coords, at::Tensor _coords_max,
       N, kernel_volume, in_coords, kernel_sizes, stride,
       coords_min, coords_max, padding,
       n_out_points, _out_coords_transformed.data_ptr<long>());
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 
   int n_out_points_scalar = (int)_n_out_points.item<int>();
 
@@ -186,6 +188,7 @@ at::Tensor downsample_cuda(at::Tensor _in_coords, at::Tensor _coords_max,
   inverse_transform_coords_kernel<<<int(ceil((double)num_out_points / 256)), 256>>>(
       num_out_points, _out_coords_transformed.data_ptr<long>(),
       coords_min, coords_max, out_coords);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
 
   return _out_coords;
 }

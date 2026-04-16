@@ -1,5 +1,6 @@
 #include <ATen/cuda/CUDAContext.h>
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <cublas_v2.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -563,6 +564,7 @@ at::Tensor conv_forward_gather_scatter_cuda_latest(
                       cum_buffer_sizes_gpu.data_ptr<int>(),
                       input_mask.data_ptr<int>(), output_mask.data_ptr<int>(),
                       transpose, precompute_mid);
+        C10_CUDA_KERNEL_LAUNCH_CHECK();
       }));
 
   at::Tensor in_buffer_activated, out_buffer_activated, kernel_buffer;
@@ -660,6 +662,7 @@ at::Tensor conv_forward_gather_scatter_cuda_latest(
         neighbor_offset_cum_gpu.data_ptr<int>(),
         cum_buffer_sizes_gpu.data_ptr<int>(), input_mask.data_ptr<int>(),
         output_mask.data_ptr<int>(), transpose, precompute_mid);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   } else {
     // new version
     scatter_all_kernel_pad_sep_with_mask_float<<<
@@ -670,6 +673,7 @@ at::Tensor conv_forward_gather_scatter_cuda_latest(
         neighbor_offset_cum_gpu.data_ptr<int>(),
         cum_buffer_sizes_gpu.data_ptr<int>(), input_mask.data_ptr<int>(),
         output_mask.data_ptr<int>(), transpose, precompute_mid);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
 
   if (precompute_mid)
@@ -790,6 +794,7 @@ at::Tensor conv_forward_gather_scatter_cuda_fallback(
                   in_feat.data_ptr<scalar_t>(),
                   in_buffer_activated.data_ptr<scalar_t>(),
                   neighbor_map.data_ptr<int>() + cur_offset, transpose);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }));
     // gemm: (i, c) X (c, o) = (i, o)
     int kmap_idx = i;
@@ -807,6 +812,7 @@ at::Tensor conv_forward_gather_scatter_cuda_fallback(
                   out_buffer_activated.data_ptr<scalar_t>(),
                   out_feat.data_ptr<scalar_t>(),
                   neighbor_map.data_ptr<int>() + cur_offset, transpose);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }));
     cur_offset += 2 * n_active_feats;
   }
@@ -889,6 +895,7 @@ void conv_backward_gather_scatter_cuda(at::Tensor in_feat, at::Tensor grad_in_fe
                   grad_out_feat.data_ptr<scalar_t>(),
                   out_grad_buffer_activated.data_ptr<scalar_t>(),
                   neighbor_map.data_ptr<int>() + cur_offset, !transpose);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }));
     AT_DISPATCH_FLOATING_TYPES_AND_HALF(
         in_feat.scalar_type(), "conv_forward_gather_scatter_cuda", ([&] {
@@ -898,6 +905,7 @@ void conv_backward_gather_scatter_cuda(at::Tensor in_feat, at::Tensor grad_in_fe
                   in_feat.data_ptr<scalar_t>(),
                   in_buffer_activated.data_ptr<scalar_t>(),
                   neighbor_map.data_ptr<int>() + cur_offset, transpose);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }));
     // gemm
     torch::mm_out(in_grad_buffer_activated, out_grad_buffer_activated,
@@ -914,6 +922,7 @@ void conv_backward_gather_scatter_cuda(at::Tensor in_feat, at::Tensor grad_in_fe
                   in_grad_buffer_activated.data_ptr<scalar_t>(),
                   grad_in_feat.data_ptr<scalar_t>(),
                   neighbor_map.data_ptr<int>() + cur_offset, !transpose);
+          C10_CUDA_KERNEL_LAUNCH_CHECK();
         }));
     cur_offset += 2 * n_active_feats;
   }
