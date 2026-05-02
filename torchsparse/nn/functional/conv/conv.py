@@ -6,6 +6,7 @@ import torch
 import torchsparse
 from torchsparse import SparseTensor
 from torchsparse.utils import make_ntuple
+from torchsparse.utils.tensor_cache import TensorCache
 
 from .func import *
 
@@ -28,8 +29,8 @@ def conv3d(
     from torchsparse.nn import functional as F
 
     feats, coords = input.feats, input.coords
+    output_caches = input._caches
     kernel_size = make_ntuple(kernel_size, ndim=3)
-    # kernel_volume = np.prod(kernel_size)
     stride = make_ntuple(stride, ndim=3)
     dilation = make_ntuple(dilation, ndim=3)
 
@@ -189,21 +190,20 @@ def conv3d(
             )
             if bias is not None:
                 feats += bias
-            input._caches.cmaps[tensor_stride] = (
+            output_caches = TensorCache()
+            output_caches.cmaps.update(input._caches.cmaps)
+            output_caches.cmaps[tensor_stride] = (
                 kmap["coords"],
                 kmap.get("spatial_range"),
             )
             output = SparseTensor(
-                coords=input._caches.cmaps[tensor_stride][0],
+                coords=output_caches.cmaps[tensor_stride][0],
                 feats=feats,
                 stride=tensor_stride,
-                spatial_range=input._caches.cmaps[tensor_stride][1],
+                spatial_range=output_caches.cmaps[tensor_stride][1],
             )
-            hashmap = [kmap["hashmap_keys"], kmap["hashmap_vals"]]
-            input._caches.kmaps = dict()  # new_kmap
-            input._caches.hashmaps = dict()
 
-    output._caches = input._caches
+    output._caches = output_caches
     output._caches.cmaps.setdefault(
         output.stride, (output.coords, output.spatial_range)
     )
