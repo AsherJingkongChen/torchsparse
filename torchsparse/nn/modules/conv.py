@@ -75,7 +75,7 @@ class Conv2d(nn.Module):
         s = "{in_channels}, {out_channels}, kernel_size={kernel_size}"
         if self.stride != (1,) * len(self.stride):
             s += ", stride={stride}"
-        if self.dilation != 1:
+        if self.dilation != (1,) * len(self.dilation):
             s += ", dilation={dilation}"
         if self.bias is None:
             s += ", bias=False"
@@ -93,8 +93,7 @@ class Conv2d(nn.Module):
             self.bias.data.uniform_(-std, std)
 
     def forward(self, input: SparseTensor) -> SparseTensor:
-        coords=input.coords
-        feats = input.feats
+        coords, feats = input.coords, input.feats
         spatial_range = input.spatial_range
 
         if self.kernel_size == (1, 1) and self.stride == (1, 1) and self.dilation == (1, 1):
@@ -163,8 +162,8 @@ class Conv3d(nn.Module):
         self.out_channels = out_channels
         self.kernel_size = make_ntuple(kernel_size, ndim=3)
         self.stride = make_ntuple(stride, ndim=3)
-        self.dilation = dilation
-        _padding = make_ntuple(padding, 3)
+        self.dilation = make_ntuple(dilation, ndim=3)
+        _padding = make_ntuple(padding, ndim=3)
         self.padding = ()
         for i in range(3):
             if self.kernel_size[i] % 2 == 1 and self.stride[i] == 1:
@@ -199,7 +198,7 @@ class Conv3d(nn.Module):
         s = "{in_channels}, {out_channels}, kernel_size={kernel_size}"
         if self.stride != (1,) * len(self.stride):
             s += ", stride={stride}"
-        if self.dilation != 1:
+        if self.dilation != (1,) * len(self.dilation):
             s += ", dilation={dilation}"
         if self.bias is None:
             s += ", bias=False"

@@ -66,9 +66,14 @@ def build_kernel_map(
     if spatial_range is not None and not subm:
         new_spatial_range = [0, 0, 0]
         for i in range(len(new_spatial_range)):
-            new_spatial_range[i] = (
-                spatial_range[i + 1] + 2 * padding[i] - (kernel_size[i] - 1) - 1
-            ) // stride[i] + 1
+            if generative:
+                new_spatial_range[i] = (
+                    (spatial_range[i + 1] - 1) * stride[i] - 2 * padding[i] + kernel_size[i]
+                )
+            else:
+                new_spatial_range[i] = (
+                    spatial_range[i + 1] + 2 * padding[i] - (kernel_size[i] - 1) - 1
+                ) // stride[i] + 1
         new_spatial_range = spatial_range[:1] + tuple(new_spatial_range)
         kmap["spatial_range"] = new_spatial_range
     else:
