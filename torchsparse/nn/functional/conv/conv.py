@@ -64,7 +64,7 @@ def conv3d(
         raise ValueError("unsupported dataflow: {}".format(dataflow))
 
     if kernel_size == (1, 1, 1) and stride == (1, 1, 1) and dilation == (1, 1, 1):
-        feats = feats.matmul(weight)
+        feats = feats.matmul(weight).to(feats.dtype)
         if bias is not None:
             feats += bias
         output = SparseTensor(

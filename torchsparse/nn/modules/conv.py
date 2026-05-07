@@ -99,7 +99,7 @@ class Conv2d(nn.Module):
         if self.kernel_size == (1, 1) and self.stride == (1, 1) and self.dilation == (1, 1):
             tensor_stride = input.stride
             tensor_spatial_range = spatial_range
-            feats = feats.matmul(self.kernel)
+            feats = feats.matmul(self.kernel).to(feats.dtype)
             if self.bias is not None:
                 feats = feats + self.bias
         elif not self.transposed:
