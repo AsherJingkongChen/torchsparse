@@ -71,10 +71,6 @@ class FetchOnDemandConvolutionFuntion(Function):
                 )
 
         if input.device.type == "cuda":
-            if torch.float16 in [input.dtype, weight.dtype]:
-                input = input.to(torch.float16)
-                weight = weight.to(torch.float16)
-
             if config["FOD_fusion"] == True:
                 output = torchsparse.backend.conv_forward_fetch_on_demand_cuda(
                     input,
@@ -87,7 +83,7 @@ class FetchOnDemandConvolutionFuntion(Function):
                     qmapsize,
                     transposed,
                     torchsparse.backends.allow_tf32,
-                    torchsparse.backends.allow_fp16,
+                    torchsparse.backends.allow_bf16,
                 )
             else:
                 output = (
@@ -100,7 +96,7 @@ class FetchOnDemandConvolutionFuntion(Function):
                         sizes[1] if not transposed else sizes[0],
                         transposed,
                         torchsparse.backends.allow_tf32,
-                        torchsparse.backends.allow_fp16,
+                        torchsparse.backends.allow_bf16,
                     )
                 )
 
@@ -108,7 +104,7 @@ class FetchOnDemandConvolutionFuntion(Function):
             raise NotImplementedError
 
         ctx.for_backwards = (input, weight, nbmaps, nbsizes, transposed)
-        return output.to(weight.dtype)
+        return output
 
     @staticmethod
     # @custom_bwd

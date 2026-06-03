@@ -61,10 +61,6 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
                 )
 
         if input.device.type == "cuda":
-            if torch.float16 in [input.dtype, weight.dtype]:
-                input = input.to(torch.float16)
-                weight = weight.to(torch.float16)
-
             # input, weight, out_in_map, out_feats
             num_out_feats = sizes[1] if not transposed else sizes[0]
             num_out_channels = weight.shape[-1]
@@ -77,7 +73,7 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
                     num_out_feats,
                     num_out_channels,
                     torchsparse.backends.allow_tf32,
-                    torchsparse.backends.allow_fp16,
+                    torchsparse.backends.allow_bf16,
                 )
             else:
                 output = torchsparse.backend.conv_forward_implicit_gemm_sorted_cuda(
@@ -89,7 +85,7 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
                     num_out_feats,
                     num_out_channels,
                     torchsparse.backends.allow_tf32,
-                    torchsparse.backends.allow_fp16,
+                    torchsparse.backends.allow_bf16,
                 )
         else:
             raise NotImplementedError
@@ -103,7 +99,7 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
             reorder_loc_bwd,
             transposed,
         )
-        return output.to(weight.dtype)
+        return output
 
     @staticmethod
     # @custom_bwd
@@ -138,7 +134,7 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
                     input.size(0),
                     input.size(1),
                     torchsparse.backends.allow_tf32,
-                    torchsparse.backends.allow_fp16,
+                    torchsparse.backends.allow_bf16,
                 )
 
                 # wgrad
@@ -152,7 +148,7 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
                             reorder_loc_bwd,
                             32,
                             torchsparse.backends.allow_tf32,
-                            torchsparse.backends.allow_fp16,
+                            torchsparse.backends.allow_bf16,
                         )
                     )
                     .reshape(kernel_volume, oc, ic)
@@ -169,7 +165,7 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
                     input.size(0),
                     input.size(1),
                     torchsparse.backends.allow_tf32,
-                    torchsparse.backends.allow_fp16,
+                    torchsparse.backends.allow_bf16,
                 )
 
                 # wgrad
@@ -181,7 +177,7 @@ class ImplicitGEMMConvolutionFuntion(Function):  # TorchSparse++
                             out_in_map_bwd,
                             32,
                             torchsparse.backends.allow_tf32,
-                            torchsparse.backends.allow_fp16,
+                            torchsparse.backends.allow_bf16,
                         )
                     )
                     .reshape(kernel_volume, oc, ic)

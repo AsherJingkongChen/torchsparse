@@ -61,10 +61,6 @@ class GatherScatterConvolutionFuntion(Function):  # TorchSparse_v2
                 )
 
         if input.device.type == "cuda":
-            if torch.float16 in [input.dtype, weight.dtype]:
-                input = input.to(torch.float16)
-                weight = weight.to(torch.float16)
-
             output = torchsparse.backend.conv_forward_gather_scatter_cuda(
                 input,
                 weight,
@@ -99,7 +95,7 @@ class GatherScatterConvolutionFuntion(Function):  # TorchSparse_v2
                 cur_feat = torch.mm(cur_feat, weight[kernel_idx])
                 output[out_map] += cur_feat
         ctx.for_backwards = (input, weight, nbmaps, nbsizes, transposed)
-        return output.to(weight.dtype)
+        return output
 
     @staticmethod
     # @custom_bwd

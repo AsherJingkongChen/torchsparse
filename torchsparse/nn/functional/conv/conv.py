@@ -29,6 +29,13 @@ def conv3d(
     from torchsparse.nn import functional as F
 
     feats, coords = input.feats, input.coords
+    if torch.is_autocast_enabled():
+        dtype = torch.get_autocast_dtype(feats.device.type)
+        feats = feats.to(dtype)
+        weight = weight.to(dtype)
+        if bias is not None:
+            bias = bias.to(dtype)
+
     output_caches = input._caches
     kernel_size = make_ntuple(kernel_size, ndim=3)
     stride = make_ntuple(stride, ndim=3)
@@ -66,7 +73,7 @@ def conv3d(
     if kernel_size == (1, 1, 1) and stride == (1, 1, 1) and dilation == (1, 1, 1):
         feats = feats.matmul(weight).to(feats.dtype)
         if bias is not None:
-            feats += bias
+            feats = feats + bias
         output = SparseTensor(
             coords=coords,
             feats=feats,
@@ -122,7 +129,7 @@ def conv3d(
         )
 
         if bias is not None:
-            feats += bias
+            feats = feats + bias
         output = SparseTensor(
             coords=kmap["coords"],
             feats=feats,
@@ -153,7 +160,7 @@ def conv3d(
             )
 
             if bias is not None:
-                feats += bias
+                feats = feats + bias
             output = SparseTensor(
                 coords=input._caches.cmaps[tensor_stride][0],
                 feats=feats,
@@ -189,7 +196,7 @@ def conv3d(
                 False,
             )
             if bias is not None:
-                feats += bias
+                feats = feats + bias
             output_caches = TensorCache()
             output_caches.cmaps.update(input._caches.cmaps)
             output_caches.cmaps[tensor_stride] = (
