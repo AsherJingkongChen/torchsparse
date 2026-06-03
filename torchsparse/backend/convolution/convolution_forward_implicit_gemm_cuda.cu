@@ -17,7 +17,7 @@ __pack_half2(const half x, const half y)
 
 // conv_forward_cuda_m128n16k16_m64n16k16_m16n16k16_f16f16f32
 template <int K_ld_factor, int N_ld_factor, bool K_ld_check, bool N_ld_check>
-__global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f16f16f32(int M, int K_original, int N, int kernel_volume, half *__restrict__ A, half *__restrict__ B, int *__restrict__ out_in_map, half *__restrict__ C)
+__global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f16f16f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, half *__restrict__ A, half *__restrict__ B, int *__restrict__ out_in_map, half *__restrict__ C)
 {
   // warning: kernel could not work with K_original < 32!
   const int K_tile = 16; // min(16, K_original);
@@ -58,7 +58,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f16f16f32
   if constexpr (N_ld_check || K_ld_check)
   {
     B_ld_start = (blockIdx.x % j_factors1) * 16 + (threadIdx.x * 8) % 16;
-    B_ld_amount_N = max(0, min(B_ld_start + 8, N) - B_ld_start);
+    B_ld_amount_N = max((int64_t)0, min((int64_t)(B_ld_start + 8), N) - B_ld_start);
     // B_ld_K_bound = (K_original % 16) ? (K_original % 16) : 16;
     B_ld_K_bound = K_original;
   }
@@ -74,7 +74,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f16f16f32
     {
       // A_ld_start = (i2_0_0 * K_tile % K_original) + ((threadIdx.x * 8) % 16);
       A_ld_start = (i2_0_0 * K_tile % K_tile_padded) + ((threadIdx.x * 8) % 16);
-      A_ld_amount = max(0, min(A_ld_start + 8, K_original) - A_ld_start);
+      A_ld_amount = max((int64_t)0, min((int64_t)(A_ld_start + 8), K_original) - A_ld_start);
       A_ld_bound = A_ld_amount / (K_ld_factor / 2);
       A_pred_guard = 0;
       for (int i = 0; i < A_ld_bound; i++)
@@ -268,7 +268,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f16f16f32
 }
 
 // conv_forward_cuda_m128n16k32_m64n16k32_m16n16k16_f16f16f32
-__global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_f16f16f32(int M, int K_original, int N, int kernel_volume, half *__restrict__ A, half *__restrict__ B, int *__restrict__ out_in_map, half *__restrict__ C)
+__global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_f16f16f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, half *__restrict__ A, half *__restrict__ B, int *__restrict__ out_in_map, half *__restrict__ C)
 {
   // warning: kernel could not work with K_original < 32!
   int K_implicit = K_original * kernel_volume;
@@ -445,7 +445,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_f16f16f32
 }
 
 // conv_forward_cuda_m128n64k32_m64n32k32_m16n16k16_f16f16f32
-__global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_f16f16f32(int M, int K_original, int N, int kernel_volume, half *__restrict__ A, half *__restrict__ B, int *__restrict__ out_in_map, half *__restrict__ C)
+__global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_f16f16f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, half *__restrict__ A, half *__restrict__ B, int *__restrict__ out_in_map, half *__restrict__ C)
 {
   int K_implicit = K_original * kernel_volume;
   float C_warp[64];
@@ -642,7 +642,7 @@ __global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_f16f16f3
 
 // conv_forward_cuda_m128n16k16_m64n16k16_m16n16k16_tf32tf32f32
 template <int K_ld_factor, int N_ld_factor, bool K_ld_check, bool N_ld_check>
-__global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_tf32tf32f32(int M, int K_original, int N, int kernel_volume, float *__restrict__ A, float *__restrict__ B, int *__restrict__ out_in_map, float *__restrict__ C)
+__global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_tf32tf32f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, float *__restrict__ A, float *__restrict__ B, int *__restrict__ out_in_map, float *__restrict__ C)
 {
   // warning: kernel could not work with K_original < 32!
   const int K_tile = 16; // min(16, K_original);
@@ -682,7 +682,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_tf32tf32f
   if constexpr (N_ld_check || K_ld_check)
   {
     B_ld_start = (blockIdx.x % j_factors1) * 16 + (threadIdx.x * 8) % 16;
-    B_ld_amount_N = max(0, min(B_ld_start + 8, N) - B_ld_start);
+    B_ld_amount_N = max((int64_t)0, min((int64_t)(B_ld_start + 8), N) - B_ld_start);
     // B_ld_K_bound = (K_original % 16) ? (K_original % 16) : 16;
     B_ld_K_bound = K_original;
   }
@@ -697,7 +697,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_tf32tf32f
     {
       // A_ld_start = (i2_0_0 * K_tile % K_original) + ((threadIdx.x * 8) % 16);
       A_ld_start = (i2_0_0 * K_tile % K_tile_padded) + ((threadIdx.x * 8) % 16);
-      A_ld_amount = max(0, min(A_ld_start + 8, K_original) - A_ld_start);
+      A_ld_amount = max((int64_t)0, min((int64_t)(A_ld_start + 8), K_original) - A_ld_start);
       A_ld_bound = A_ld_amount / (K_ld_factor / 4);
       A_pred_guard = 0;
       for (int i = 0; i < A_ld_bound; i++)
@@ -846,7 +846,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_tf32tf32f
 }
 
 // conv_forward_cuda_m128n16k32_m64n16k32_m16n16k16_tf32tf32f32
-__global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_tf32tf32f32(int M, int K_original, int N, int kernel_volume, float *__restrict__ A, float *__restrict__ B, int *__restrict__ out_in_map, float *__restrict__ C)
+__global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_tf32tf32f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, float *__restrict__ A, float *__restrict__ B, int *__restrict__ out_in_map, float *__restrict__ C)
 {
   // warning: kernel could not work with K_original < 32!
   int K_implicit = K_original * kernel_volume;
@@ -983,7 +983,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_tf32tf32f
 }
 
 // conv_forward_cuda_m128n64k32_m64n32k32_m16n16k16_tf32tf32f32
-__global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_tf32tf32f32(int M, int K_original, int N, int kernel_volume, float *__restrict__ A, float *__restrict__ B, int *__restrict__ out_in_map, float *__restrict__ C)
+__global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_tf32tf32f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, float *__restrict__ A, float *__restrict__ B, int *__restrict__ out_in_map, float *__restrict__ C)
 {
   int K_implicit = K_original * kernel_volume;
   float C_warp[64];
@@ -1142,7 +1142,7 @@ __global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_tf32tf32
 
 // conv_forward_cuda_m128n16k16_f32f32f32
 template <int K_ld_factor, int N_ld_factor, bool K_ld_check, bool N_ld_check>
-__global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f32f32f32(int M, int K_original, int N, int kernel_volume, float* __restrict__ A, float* __restrict__ B, int* __restrict__ out_in_map, float* __restrict__ C) 
+__global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f32f32f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, float* __restrict__ A, float* __restrict__ B, int* __restrict__ out_in_map, float* __restrict__ C) 
 {
 
   const int K_tile = 16;
@@ -1194,7 +1194,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f32f32f32
   if constexpr (N_ld_check || K_ld_check)
   {
     B_ld_start = (blockIdx_n * 16) + ((threadIdx_x * 4) % 16);
-    B_ld_amount_N = max(0, min(B_ld_start + 4, N) - B_ld_start);
+    B_ld_amount_N = max((int64_t)0, min((int64_t)(B_ld_start + 4), N) - B_ld_start);
     // B_ld_K_bound = (K_original % 16) ? (K_original % 16) : 16;
     B_ld_K_bound = K_original;
   }
@@ -1208,7 +1208,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f32f32f32
       if constexpr (K_ld_check)
       {
         A_ld_start = (k_0 * K_tile % K_tile_padded) + ((threadIdx.x * 4) % 16); // Channel_offset
-        A_ld_amount = max(0, min(A_ld_start + 4, K_original) - A_ld_start);
+        A_ld_amount = max((int64_t)0, min((int64_t)(A_ld_start + 4), K_original) - A_ld_start);
         A_ld_bound = A_ld_amount / (K_ld_factor / 4);
         A_pred_guard = 0;
         for (int i = 0; i < A_ld_bound; i++)
@@ -1311,7 +1311,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting1_mode0_f32f32f32
 }
 
 // conv_forward_cuda_m128n16k32_f32f32f32
-__global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_f32f32f32(int M, int K_original, int N, int kernel_volume, float* __restrict__ A, float* __restrict__ B, int* __restrict__ out_in_map, float* __restrict__ C) 
+__global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_f32f32f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, float* __restrict__ A, float* __restrict__ B, int* __restrict__ out_in_map, float* __restrict__ C) 
 {
   float C_local[32];
   __shared__ float A_shared[4096];
@@ -1419,7 +1419,7 @@ __global__ void __launch_bounds__(64) conv_forward_cuda_setting2_mode0_f32f32f32
 }
 
 // conv_forward_cuda_m128n64k32_f32f32f32
-__global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_f32f32f32(int M, int K_original, int N, int kernel_volume, float* __restrict__ A, float* __restrict__ B, int* __restrict__ out_in_map, float* __restrict__ C) 
+__global__ void __launch_bounds__(128) conv_forward_cuda_setting3_mode0_f32f32f32(int64_t M, int64_t K_original, int64_t N, int kernel_volume, float* __restrict__ A, float* __restrict__ B, int* __restrict__ out_in_map, float* __restrict__ C) 
 {
   float C_local[64];
   __shared__ float A_shared[4096];
